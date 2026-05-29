@@ -1,0 +1,35 @@
+# =========================
+# 1. Python & Mac OS
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+
+# =========================
+# 2. Virtual Environments
+# =========================
+.venv/
+venv/
+env/
+.conda/
+
+# =========================
+# 3. Data & MLflow (数据合规与隐私)
+# =========================
+# 绝对不要把模拟的或者生成的医疗数据推送到远端
+data/
+*.csv
+*.parquet
+*.json
+# 忽略 MLflow 生成的本地追踪文件夹
+mlruns/
+
+# =========================
+# 4. Terraform & IaC (InfraOps 规范)
+# =========================
+# 绝对不能推送 .tfstate，它包含云环境的敏感状态和密钥
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl

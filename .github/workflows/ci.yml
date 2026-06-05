@@ -13,6 +13,13 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: 🔐 Gate 1 - Scan for Hardcoded Secrets
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Python 3.10
       uses: actions/setup-python@v4
@@ -28,8 +35,15 @@ jobs:
     - name: Install Platform Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pyspark
+        pip install pytest chispa flake8 pyspark
 
-    - name: Execute Isolated Unit Tests
+    - name: 🧹 Gate 2 - Enforce Code Quality (Linting)
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Enforce complexity and line-length standards
+        flake8 src/ tests/ --count --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: 🧪 Gate 3 - Execute PySpark Unit Tests
       run: |
         python -m pytest tests/

@@ -19,8 +19,11 @@ resource "kubernetes_namespace" "tenant_uw" {
   metadata {
     name = "tenant-uw-medicine"
     labels = {
-      "tenant-id"   = "uw-001"
-      "environment" = "production"
+      "tenant-id"     = "uw-001"
+      "environment"   = "production"
+      # FinOps: Cost center and project allocation labels for multi-tenant chargeback tracking
+      "cost-center"   = "research-and-development"
+      "project-owner" = "mlops-platform-core"
     }
   }
 }
@@ -30,6 +33,10 @@ resource "kubernetes_resource_quota" "tenant_uw_quota" {
   metadata {
     name      = "uw-resource-quota"
     namespace = kubernetes_namespace.tenant_uw.metadata[0].name
+    labels = {
+      "tenant-id"   = "uw-001"
+      "cost-center" = "research-and-development"
+    }
   }
   spec {
     hard = {
@@ -49,8 +56,11 @@ resource "kubernetes_namespace" "tenant_swedish" {
   metadata {
     name = "tenant-swedish-medical"
     labels = {
-      "tenant-id"   = "sw-002"
-      "environment" = "production"
+      "tenant-id"     = "sw-002"
+      "environment"   = "production"
+      # FinOps: Isolated cost allocation for Tenant B to simulate department bill splitting
+      "cost-center"   = "clinical-analytics"
+      "project-owner" = "biomedical-imaging"
     }
   }
 }

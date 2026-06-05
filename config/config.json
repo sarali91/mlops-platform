@@ -1,0 +1,6 @@
+{
+  "pipeline": {
+    "input_path": "data/mock_ehr.csv",
+    "output_path": "data/secure_lake/"
+  }
+}

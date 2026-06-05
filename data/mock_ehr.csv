@@ -1,0 +1,4 @@
+patient_id,encounter_id,facility_id,medical_notes
+PT-12345,ENC-001,FAC-WEST,Patient presented with mild fever.
+PT-67890,ENC-002,FAC-EAST,Routine physical examination completed.
+PT-55443,ENC-003,FAC-WEST,Scheduled follow-up for blood pressure monitoring.

@@ -29,7 +29,7 @@ resource "kubernetes_namespace" "tenant_uw" {
 resource "kubernetes_resource_quota" "tenant_uw_quota" {
   metadata {
     name      = "uw-resource-quota"
-    namespace = kubernetes_namespace.tenant_uw.metadata.name
+    namespace = kubernetes_namespace.tenant_uw.metadata[0].name
   }
   spec {
     hard = {

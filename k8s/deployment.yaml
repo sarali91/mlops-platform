@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlops-pipeline-deployment
+  namespace: healthcare-analytics-tenant # Matches the namespace from your Terraform file
+spec:
+  replicas: 2 # Ensures high availability
+  selector:
+    matchLabels:
+      app: mlops-pipeline
+  template:
+    metadata:
+      labels:
+        app: mlops-pipeline
+    spec:
+      containers:
+      - name: pipeline-container
+        image: sarali91/mlops-pipeline:latest
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"

@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ehr-pipeline-sa
+  namespace: tenant-uw-medicine
+  labels:
+    tenant-id: uw-001
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ehr-pipeline-restricted-role
+  namespace: tenant-uw-medicine
+rules:
+# This role has absolutely zero permissions to modify the cluster.
+# It can only "get" and "list" basic resources within its own namespace.
+- apiGroups: [""]
+  resources: ["pods", "configmaps"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ehr-pipeline-role-binding
+  namespace: tenant-uw-medicine
+subjects:
+- kind: ServiceAccount
+  name: ehr-pipeline-sa
+  namespace: tenant-uw-medicine
+roleRef:
+  kind: Role
+  name: ehr-pipeline-restricted-role
+  apiGroup: rbac.authorization.k8s.io

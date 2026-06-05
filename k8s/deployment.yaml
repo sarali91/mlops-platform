@@ -1,25 +1,45 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mlops-pipeline-deployment
-  namespace: healthcare-analytics-tenant # Matches the namespace from your Terraform file
+  name: ehr-data-pipeline-deployment
+  namespace: tenant-uw-medicine
+  labels:
+    app: ehr-pipeline
+    tenant-id: uw-001
+    cost-center: research-and-development
 spec:
-  replicas: 2 # Ensures high availability
+  replicas: 1
   selector:
     matchLabels:
-      app: mlops-pipeline
+      app: ehr-pipeline
   template:
     metadata:
       labels:
-        app: mlops-pipeline
+        app: ehr-pipeline
     spec:
+      # 1. Attach the restricted Service Account
+      serviceAccountName: ehr-pipeline-sa
+      # 2. Hardened Security Context: Forbid root execution
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
       containers:
-      - name: pipeline-container
-        image: sarali91/mlops-pipeline:latest
+      - name: pipeline-executor
+        image: mlops-platform-pipeline:latest
+        imagePullPolicy: IfNotPresent
+        # 3. Explicit Resource Boundaries (Prevents noisy-neighbor OOM crashes)
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
+            cpu: "1"
             memory: "2Gi"
-            cpu: "1000m"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        # 4. Prevent the container from acquiring elevated OS privileges
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        env:
+        - name: ENVIRONMENT
+          value: "production"

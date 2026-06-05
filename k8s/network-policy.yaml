@@ -1,0 +1,13 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ehr-tenant-isolation-policy
+  namespace: tenant-uw-medicine
+spec:
+  podSelector:
+    matchLabels:
+      app: ehr-pipeline
+  policyTypes:
+  - Ingress
+  # By leaving the 'ingress' array empty, this acts as a "Default Deny" rule.
+  # Absolutely no other pods in the cluster can send network traffic to this pipeline.

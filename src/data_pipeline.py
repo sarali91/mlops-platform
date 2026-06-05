@@ -1,8 +1,11 @@
 import os
 import json
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, sha2
 from src.agents.pii_auditor_agent import PiiAuditorAgent
+
+# Import our newly isolated enterprise modules
+from src.spark_utils import get_spark_session
+from src.transformations import hash_patient_ids
+from src.schema import get_ehr_schema
 
 # =====================================================================
 # 1. ARCHITECTURAL FUNCTIONS
@@ -25,7 +28,7 @@ def load_config(config_path="config/config.json"):
 def validate_incoming_data(df):
     """Data Quality Gate: Enforces strict data schema contracts at runtime."""
     expected_columns = ["patient_id", "encounter_id", "medical_notes"]
-    missing_cols = [col for col in expected_columns if col not in df.columns]
+    missing_cols = [c for c in expected_columns if c not in df.columns]
     if missing_cols:
         raise LookupError(f"Data Quality Gate Failed: Missing mandatory schema columns: {missing_cols}")
     
@@ -35,21 +38,14 @@ def validate_incoming_data(df):
     return True
 
 
-def hash_patient_ids(df, column_name="patient_id"):
-    """Applies HIPAA/GDPR-compliant SHA-256 irreversible hashing."""
-    return df.withColumn(column_name, sha2(col(column_name).cast("string"), 256))
-
-
 # =====================================================================
-# 2. RUNTIME PIPELINE EXECUTION
+# 2. RUNTIME PIPELINE ORCHESTRATION
 # =====================================================================
 if __name__ == "__main__":
     print("🚀 Initializing Spark Session for Healthcare Pipeline...")
     
-    # Initialize the local Spark session
-    spark = SparkSession.builder \
-        .appName("Truveta-MLOps-Pipeline") \
-        .getOrCreate()
+    # Initialize the local Spark session using our isolated utility module
+    spark = get_spark_session("Truveta-MLOps-Pipeline")
 
     # Dynamic External Config Loading
     config = load_config()
@@ -57,15 +53,15 @@ if __name__ == "__main__":
     output_path = config["pipeline"]["output_path"]
 
     try:
-        # 1. Ingest raw EHR data
+        # 1. Ingest raw EHR data WITH STRICT SCHEMA ENFORCEMENT
         print(f"📥 Reading raw data from: {input_path}")
-        raw_df = spark.read.csv(input_path, header=True, inferSchema=True)
+        raw_df = spark.read.csv(input_path, header=True, schema=get_ehr_schema())
 
         # 2. Runtime Data Validation Gate
         print("🛡️ Running runtime data validation gate...")
         validate_incoming_data(raw_df)
 
-        # 3. Apply the hashing transformation using our new function
+        # 3. Apply the hashing transformation using our isolated module
         print("🔐 Masking patient identifiers via SHA-256...")
         secure_df = hash_patient_ids(raw_df, column_name="patient_id")
 

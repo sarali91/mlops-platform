@@ -1,5 +1,3 @@
-import json
-
 class PiiAuditorAgent:
     def __init__(self, model_target="azure-openai-gpt4"):
         self.model_target = model_target
@@ -18,5 +16,5 @@ class PiiAuditorAgent:
             "status": "APPROVED",
             "pii_detected": False,
             "confidence_score": 0.99,
-            "audited_by": self.model_target
+            "audited_by": self.model_target,
         }

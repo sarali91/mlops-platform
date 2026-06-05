@@ -11,6 +11,7 @@ from src.schema import get_ehr_schema
 # 1. ARCHITECTURAL FUNCTIONS
 # =====================================================================
 
+
 def load_config(config_path="config/config.json"):
     """Loads external configuration settings safely using standard built-in json."""
     if not os.path.exists(config_path):
@@ -18,7 +19,7 @@ def load_config(config_path="config/config.json"):
         return {
             "pipeline": {
                 "input_path": "data/mock_ehr.csv",
-                "output_path": "data/secure_lake/"
+                "output_path": "data/secure_lake/",
             }
         }
     with open(config_path, "r") as f:
@@ -30,11 +31,15 @@ def validate_incoming_data(df):
     expected_columns = ["patient_id", "encounter_id", "medical_notes"]
     missing_cols = [c for c in expected_columns if c not in df.columns]
     if missing_cols:
-        raise LookupError(f"Data Quality Gate Failed: Missing mandatory schema columns: {missing_cols}")
-    
+        raise LookupError(
+            f"Data Quality Gate Failed: Missing mandatory schema columns: {missing_cols}"
+        )
+
     null_patient_count = df.filter(df["patient_id"].isNull()).count()
     if null_patient_count > 0:
-        raise ValueError(f"Data Quality Gate Failed: Found {null_patient_count} records with missing patient_id identifiers.")
+        raise ValueError(
+            f"Data Quality Gate Failed: Found {null_patient_count} records with missing patient_id identifiers."
+        )
     return True
 
 
@@ -43,7 +48,7 @@ def validate_incoming_data(df):
 # =====================================================================
 if __name__ == "__main__":
     print("🚀 Initializing Spark Session for Healthcare Pipeline...")
-    
+
     # Initialize the local Spark session using our isolated utility module
     spark = get_spark_session("Truveta-MLOps-Pipeline")
 
@@ -68,7 +73,7 @@ if __name__ == "__main__":
         # 4. Deploy Agentic LLM Auditor for unstructured fields
         print("🤖 Deploying Agentic LLM Auditor for unstructured clinical notes...")
         auditor = PiiAuditorAgent()
-        
+
         # Extract a sample record or pass sample text to verify compliance parameters
         sample_notes = "Patient presented with mild fever."
         audit_result = auditor.audit_unstructured_text(sample_notes)
@@ -76,15 +81,13 @@ if __name__ == "__main__":
 
         # 5. Write out to scaled, partitioned Parquet files using safe overwrite mode
         print(f"💾 Saving de-identified data to Parquet lake at: {output_path}")
-        secure_df.write \
-            .mode("overwrite") \
-            .parquet(output_path)
-            
+        secure_df.write.mode("overwrite").parquet(output_path)
+
         print("✅ Pipeline executed successfully with zero data leaks!")
 
     except Exception as e:
         print(f"❌ Pipeline runtime error intercepted: {str(e)}")
-        
+
     finally:
         # Always stop the Spark session to free up system memory
         spark.stop()

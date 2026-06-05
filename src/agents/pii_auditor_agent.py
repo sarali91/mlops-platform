@@ -7,11 +7,8 @@ class PiiAuditorAgent:
         Simulates an LLM agent performing Named Entity Recognition (NER)
         to detect residual PII leakage in unstructured clinical notes.
         """
-        # In production, this would invoke an authenticated LangChain or OpenAI API call
-        # We simulate a successful compliance audit return string
-        simulated_prompt = f"Analyze for hidden names, dates, or SSNs: {text_content}"
-
-        # Return a mock structured response
+        # In production, this would invoke an authenticated LangChain or OpenAI API call.
+        # We return a mock structured response for pipeline validation.
         return {
             "status": "APPROVED",
             "pii_detected": False,
